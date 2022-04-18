@@ -6,7 +6,6 @@
     Parts:
     NodeMCU v3 ESP8266 board
     Waveshare 1.54" e-Paper
-    Battery?
 
     Written by serginator <@serginator>
  *******************************************************************/
@@ -16,33 +15,29 @@
 // Wifi and Telegram stuff
 #include "net.h"
 
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
-  randomSeed(analogRead(0));
 
   initScreen();
   initWifi();
+  bot_setup();
 }
 
 void loop() {
-  if (millis() - bot_lasttime > BOT_MTBS) {
-    int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-
-    if (numNewMessages > 0) {
-      while (numNewMessages) {
-        Serial.println("got response");
-        handleNewMessages(numNewMessages);
-        numNewMessages = bot.getUpdates(bot.last_message_received + 1);
-      }
-    } else {
-      sendRandomMessage();
+  int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+  if (numNewMessages > 0) {
+    while (numNewMessages) {
+      Serial.println("got response");
+      handleNewMessages(numNewMessages);
+      numNewMessages = bot.getUpdates(bot.last_message_received + 1);
+      delay(5000);
     }
-
-    bot_lasttime = millis();
-
-    // 3600e6 = 1h
-    // 86400e6 = 24h
-    ESP.deepSleep(3600e6); // sleep for 3600 seconds
+  } else {
+    sendRandomMessage();
   }
+  // Time to deepSleep (max 71 minutes, 4260e6)
+  // 3600e6 = 1h
+  ESP.deepSleep(600e6); // 10 minutes
 }

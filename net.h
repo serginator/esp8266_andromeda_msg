@@ -28,17 +28,28 @@ void initWifi() {
   }
   Serial.print("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
-
-  // Check NTP/Time, usually it is instantaneous and you can delete the code below.
-  Serial.print("Retrieving time: ");
-  time_t now = time(nullptr);
-  while (now < 24 * 3600) {
-    Serial.print(".");
-    delay(100);
-    now = time(nullptr);
-  }
-  Serial.println(now);
+  long randSeed = time(nullptr);
+  Serial.println("Random seed is: " + str(randSeed));
+  randomSeed(randSeed);
   bot.sendMessage(CHAT_ID, "NodeMCU Started!!!", "");
+}
+
+void reconnectWifi() {
+  Serial.print("Reconnecting...");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println("\nConnected");
+}
+
+void bot_setup() {
+  const String commands = F("["
+                            "{\"command\":\"help\", \"description\":\"Bot help\"},"
+                            "{\"command\":\"start\", \"description\":\"Start bot\"},"
+                            "]");
+  bot.setMyCommands(commands);
 }
 
 void handleNewMessages(int numNewMessages) {
@@ -54,20 +65,24 @@ void handleNewMessages(int numNewMessages) {
     if (from_name == "")
       from_name = "Guest";
 
-    if(text.indexOf("/send") != -1) {
-      text.remove(0, 6);
-      Serial.print("El mensaje que quieres enviar es: ");
-      Serial.println(text);
-      // write on eInk
-      printMessage(text);
-
-      bot.sendMessage(chat_id, "Mensaje enviado correctamente", "");
-    }
-
-    if (text == "/start") {
+    if (text == "/help") {
+       String help = "Hello! Useful commands are: /help, /start, /send <message>";
+       bot.sendMessage(chat_id, help, "Markdown");
+    } else if (text == "/start") {
       String welcome = "Welcome to Andromeda Messenger for Arduino, " + from_name + ".\n\n";
       welcome += "/send <msg> : Sends message to NodeMCU unit\n";
       bot.sendMessage(chat_id, welcome, "Markdown");
+    } else if(text.indexOf("/send") != -1) {
+      text.remove(0, 6);
+      Serial.print("The message you want to send is: ");
+      Serial.println(text);
+      // write on eInk
+      printMessage(text);
+      bot.sendMessage(chat_id, "Message sent", "");
+      delay(5000);
+    } else {
+       String error = "I didn't understand the message '" + text + "'. Please write /help or /start to get info on how to use me.";
+       bot.sendMessage(chat_id, error, "Markdown");
     }
   }
 }

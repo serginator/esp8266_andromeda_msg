@@ -60,9 +60,11 @@ void printMessage(String message) {
   epd.Clear();
 
   Serial.println("e-Paper paint");
+
   epd.HDirInit();
   printImage();
 
+  // test to write full text
   paint.SetWidth(200);
   paint.SetHeight(40);
   paint.Clear(COLORED);
@@ -73,7 +75,7 @@ void printMessage(String message) {
     int l = message.length() / 24;
     for (int i = 0; i <= l; i++) {
       aux = message.substring(24 * i, 24 * (i+1));
-      paint.DrawStringAt(5, 10 * i, aux.c_str(), &Font12, COLORED);
+      paint.DrawStringAt(5, 10 * i, aux.c_str(), &Font12, COLORED); // recuadro blanco con texto en negro
     }
   }
   epd.SetFrameMemory(paint.GetImage(), 0, 40, paint.GetWidth(), paint.GetHeight());
